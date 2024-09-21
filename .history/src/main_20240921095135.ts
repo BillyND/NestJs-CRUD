@@ -1,15 +1,14 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { AppService } from './app.service';
-import { join } from 'path';
-import { NestExpressApplication } from '@nestjs/platform-express';
 
 async function bootstrap() {
   const appController = new AppService();
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const app = await NestFactory.create(AppModule);
+
   app.useStaticAssets(join(__dirname, '..', 'public'));
   app.setBaseViewsDir(join(__dirname, '..', 'views'));
-  app.setViewEngine('ejs');
+  app.setViewEngine('hbs');
 
   await app.listen(3000);
 }
