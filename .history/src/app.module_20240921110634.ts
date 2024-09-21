@@ -9,9 +9,7 @@ import { UsersController } from './users/user.controller';
   imports: [
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        uri: configService.get<string>('MONGODB_URI'),
-      }),
+      useFactory: (configService: ConfigService) => console.log('===>okay'),
       inject: [ConfigService],
     }),
     ConfigModule.forRoot({ envFilePath: '.env', isGlobal: true }),

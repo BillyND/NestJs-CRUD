@@ -9,8 +9,8 @@ import { UsersController } from './users/user.controller';
   imports: [
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        uri: configService.get<string>('MONGODB_URI'),
+      useFactory: async (configService: ConfigService) => ({
+        type: configService,
       }),
       inject: [ConfigService],
     }),
