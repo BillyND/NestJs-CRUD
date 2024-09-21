@@ -1,17 +1,44 @@
 import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { InjectModel } from '@nestjs/mongoose';
 import { User } from './schemas/user.schema';
-import { Model } from 'mongoose';
+import { hash as hashBcrypt } from 'bcrypt';
 
 @Injectable()
 export class UsersService {
   constructor(@InjectModel(User.name) private userModel: Model<User>) {}
 
+  isValidEmail(email: string) {
+    const regExp = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+    return regExp.test(email);
+  }
+
+  async getHashPassword(plain: string) {
+    const hash = await hashBcrypt(plain, 10).then((hash: string) => hash);
+    return hash;
+  }
+
   async create(createUserDto: CreateUserDto) {
-    const user = await this.userModel.create(createUserDto).catch((e) => e);
-    return user;
+    const hashedPassword = await this.getHashPassword(createUserDto.password);
+
+    if (!this.isValidEmail(createUserDto.email)) {
+      return { message: 'Email is invalid!', success: false };
+    }
+
+    const result = await this.userModel
+      .create({ ...createUserDto, password: hashedPassword })
+      .catch((e) => e);
+
+    if (!result?._id) {
+      return {
+        success: false,
+        ...result,
+      };
+    }
+
+    return { success: true };
   }
 
   findAll() {
