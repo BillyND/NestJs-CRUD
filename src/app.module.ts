@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { MongooseModule } from '@nestjs/mongoose';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { UsersController } from './users/user.controller';
+import { UsersModule } from './users/users.module';
+import { UsersController } from './users/users.controller';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { UsersController } from './users/user.controller';
       inject: [ConfigService],
     }),
     ConfigModule.forRoot({ envFilePath: '.env', isGlobal: true }),
+    UsersModule,
   ],
   controllers: [AppController, UsersController],
   providers: [AppService],
