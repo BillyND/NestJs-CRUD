@@ -5,6 +5,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './schemas/user.schema';
 import { hash as hashBcrypt } from 'bcrypt';
+const ObjectId = require('mongodb').ObjectId;
 
 @Injectable()
 export class UsersService {
@@ -22,29 +23,65 @@ export class UsersService {
       .create({ ...createUserDto, password: hashedPassword })
       .catch((e) => e);
 
-    if (!result?._id) {
+    const { _id, name, email } = result || {};
+
+    if (!_id) {
       return {
         success: false,
         ...result,
       };
     }
 
-    return { success: true };
+    return { success: true, user: { _id, name, email } };
   }
 
   findAll() {
     return `This action returns all users`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findOne(_id: string) {
+    try {
+      const user = await this.userModel.findById(_id).select('-password');
+
+      if (user) {
+        return { success: true, user };
+      }
+
+      return { success: false, message: 'User not found!' };
+    } catch (error) {
+      return { success: false, message: error?.message || 'UNKNOWN' };
+    }
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(updateUserDto: UpdateUserDto) {
+    try {
+      const { _id, name, phone } = updateUserDto || {};
+
+      const user = await this.userModel
+        .findByIdAndUpdate(_id?.trim(), { name, phone }, { new: true })
+        .select('-password');
+
+      if (user) {
+        return { success: true, message: 'Updated user', user };
+      }
+
+      return { success: false, message: 'User not found!' };
+    } catch (error) {
+      return { success: false, message: error?.message || 'UNKNOWN' };
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async remove(_id: string) {
+    try {
+      const user = await this.userModel.findByIdAndDelete(_id?.trim());
+
+      if (user) {
+        return { success: true, message: 'Deleted user', user };
+      }
+
+      return { success: false, message: 'User not found!' };
+    } catch (error) {
+      return { success: false, message: error?.message || 'UNKNOWN' };
+    }
   }
 }
