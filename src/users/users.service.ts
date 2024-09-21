@@ -10,11 +10,6 @@ import { hash as hashBcrypt } from 'bcrypt';
 export class UsersService {
   constructor(@InjectModel(User.name) private userModel: Model<User>) {}
 
-  isValidEmail(email: string) {
-    const regExp = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
-    return regExp.test(email);
-  }
-
   async getHashPassword(plain: string) {
     const hash = await hashBcrypt(plain, 10).then((hash: string) => hash);
     return hash;
@@ -22,10 +17,6 @@ export class UsersService {
 
   async create(createUserDto: CreateUserDto) {
     const hashedPassword = await this.getHashPassword(createUserDto.password);
-
-    if (!this.isValidEmail(createUserDto.email)) {
-      return { message: 'Email is invalid!', success: false };
-    }
 
     const result = await this.userModel
       .create({ ...createUserDto, password: hashedPassword })
