@@ -4,8 +4,7 @@ import { Model } from 'mongoose';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './schemas/user.schema';
-import { hash as hashBcrypt } from 'bcrypt';
-const ObjectId = require('mongodb').ObjectId;
+import { hash as hashBcrypt, compare } from 'bcrypt';
 
 @Injectable()
 export class UsersService {
@@ -14,6 +13,10 @@ export class UsersService {
   async getHashPassword(plain: string) {
     const hash = await hashBcrypt(plain, 10).then((hash: string) => hash);
     return hash;
+  }
+
+  async isValidPassword(password: string, hash: string) {
+    return await compare(password, hash).then((result) => result);
   }
 
   async create(createUserDto: CreateUserDto) {
@@ -41,7 +44,21 @@ export class UsersService {
 
   async findOne(_id: string) {
     try {
-      const user = await this.userModel.findById(_id).select('-password');
+      const user = await this.userModel.findById(_id);
+
+      if (user) {
+        return { success: true, user };
+      }
+
+      return { success: false, message: 'User not found!' };
+    } catch (error) {
+      return { success: false, message: error?.message || 'UNKNOWN' };
+    }
+  }
+
+  async findOneByEmail(email: string) {
+    try {
+      const user = await this.userModel.findOne({ email });
 
       if (user) {
         return { success: true, user };
